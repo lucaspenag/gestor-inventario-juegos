@@ -1,0 +1,27 @@
+# Variables de entorno
+.env
+.env.local
+
+# Base de datos local
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+#Entorno virtual
+venv/
+env/
+.venv/
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Sistema operativo
+.DS_Store
