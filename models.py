@@ -7,7 +7,6 @@ from extensions import db, login_manager
 
 
 def ahora():
-    """Fecha y hora actual."""
     return datetime.now(timezone.utc)
 
 
@@ -31,7 +30,6 @@ class Usuario(UserMixin, db.Model):
         self.password_hash = generate_password_hash(password)
 
     def verificar_password(self, password):
-        """Compara la contrasena ingresada contra el hash guardado."""
         if not self.password_hash:
             return False
         return check_password_hash(self.password_hash, password)
