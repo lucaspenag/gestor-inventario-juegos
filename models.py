@@ -11,7 +11,6 @@ def ahora():
 
 
 class Usuario(UserMixin, db.Model):
-
     __tablename__ = "usuarios"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -26,7 +25,6 @@ class Usuario(UserMixin, db.Model):
 
 
     def definir_password(self, password):
-        """Guarda la contrasena cifrada."""
         self.password_hash = generate_password_hash(password)
 
     def verificar_password(self, password):
@@ -40,6 +38,63 @@ class Usuario(UserMixin, db.Model):
 
     def __repr__(self):
         return f"<Usuario {self.email} ({self.rol})>"
+
+
+class Proveedor(db.Model):
+    __tablename__ = "proveedores"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(150), unique=True, nullable=False)
+    contacto = db.Column(db.String(150), nullable=True)
+    email = db.Column(db.String(150), nullable=True)
+    telefono = db.Column(db.String(50), nullable=True)
+    activo = db.Column(db.Boolean, nullable=False, default=True)
+
+    juegos = db.relationship("Juego", back_populates="proveedor")
+
+    def __repr__(self):
+        return f"<Proveedor {self.nombre}>"
+
+
+class Juego(db.Model):
+    __tablename__ = "juegos"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(200), nullable=False, index=True)
+    editorial = db.Column(db.String(150), nullable=True)
+    categoria = db.Column(db.String(100), nullable=True)
+    min_jugadores = db.Column(db.Integer, nullable=True)
+    max_jugadores = db.Column(db.Integer, nullable=True)
+    edad_minima = db.Column(db.Integer, nullable=True)
+    duracion_minutos = db.Column(db.Integer, nullable=True)
+    precio = db.Column(db.Float, nullable=False, default=0.0)
+    stock = db.Column(db.Integer, nullable=False, default=0)
+    stock_minimo = db.Column(db.Integer, nullable=False, default=1)
+    bgg_id = db.Column(db.Integer, nullable=True)
+    imagen_url = db.Column(db.String(400), nullable=True)
+    descripcion = db.Column(db.Text, nullable=True)
+
+    proveedor_id = db.Column(db.Integer, db.ForeignKey("proveedores.id"), nullable=True)
+    proveedor = db.relationship("Proveedor", back_populates="juegos")
+
+    activo = db.Column(db.Boolean, nullable=False, default=True)
+    fecha_alta = db.Column(db.DateTime, default=ahora)
+
+
+    @property
+    def necesita_reposicion(self):
+        return self.stock <= self.stock_minimo
+
+    @property
+    def jugadores_texto(self):
+        if self.min_jugadores and self.max_jugadores:
+            if self.min_jugadores == self.max_jugadores:
+                return f"{self.min_jugadores} jugadores"
+            return f"{self.min_jugadores} a {self.max_jugadores} jugadores"
+        return "Sin datos"
+
+    def __repr__(self):
+        return f"<Juego {self.nombre} (stock={self.stock})>"
 
 
 @login_manager.user_loader
