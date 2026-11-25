@@ -2,12 +2,72 @@
 {% block titulo %}Tablero - {{ nombre_sistema }}{% endblock %}
 
 {% block contenido %}
-<div class="mb-4">
-    <h1 class="h3 mb-0">Tablero</h1>
-    <p class="text-muted small mb-0">Estado general del inventario</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Tablero</h1>
+        <p class="text-muted small mb-0">Estado general del inventario</p>
+    </div>
 </div>
 
-<div class="alert alert-info">
-    Iniciaste sesion correctamente.
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card tarjeta-dato h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Juegos activos</p>
+                <p class="h3 mb-0">{{ total_juegos }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card tarjeta-dato h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Unidades en stock</p>
+                <p class="h3 mb-0">{{ unidades }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card tarjeta-dato h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Valorizado</p>
+                <p class="h3 mb-0">{{ valorizado|pesos }}</p>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <strong>Juegos a reponer</strong>
+                <span class="badge bg-warning text-dark ms-1">{{ a_reponer|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if a_reponer %}
+                <ul class="list-group list-group-flush">
+                    {% for juego in a_reponer %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                            {{ juego.nombre }}
+                            {% if juego.stock == 0 %}
+                            <span class="badge bg-danger ms-1">Sin stock</span>
+                            {% endif %}
+                        </span>
+                        <span class="text-muted small">
+                            {{ juego.stock }} / minimo {{ juego.stock_minimo }}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted small p-3 mb-0">Todos los juegos estan por encima del stock minimo.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}
