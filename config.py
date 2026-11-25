@@ -2,14 +2,12 @@ import os
 
 from dotenv import load_dotenv
 
-# Carga el archivo .env si existe.
 load_dotenv()
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def _normalizar_url_base(url):
-    """Adapta la URL de la base de datos al formato que espera SQLAlchemy."""
     if url and url.startswith("postgres://"):
         return url.replace("postgres://", "postgresql://", 1)
     return url
@@ -22,3 +20,7 @@ class Config:
         os.getenv("DATABASE_URL")
     ) or "sqlite:///" + os.path.join(BASE_DIR, "instance", "inventario.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    ADMIN_NOMBRE = os.getenv("ADMIN_NOMBRE", "Administrador")
+    ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@tiendadejuegos.com")
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin1234")

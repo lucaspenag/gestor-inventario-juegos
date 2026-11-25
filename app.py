@@ -8,6 +8,7 @@ from config import Config
 from extensions import db, login_manager, oauth
 from routes.auth import auth_bp
 from routes.inventario import inventario_bp
+from seed import crear_datos_iniciales
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -48,6 +49,7 @@ def formato_fecha(valor):
 
 with app.app_context():
     db.create_all()
+    crear_datos_iniciales()
 
 
 if __name__ == "__main__":
