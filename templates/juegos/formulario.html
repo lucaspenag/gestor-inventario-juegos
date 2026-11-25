@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block titulo %}{% if juego %}Editar{% else %}Nuevo{% endif %} juego - {{ nombre_sistema }}{% endblock %}
+
+{# Devuelve el valor de un campo: primero lo que vino del formulario o de la
+   importacion de BoardGameGeek, y si no el valor guardado del juego. #}
+{% macro valor(nombre) -%}
+{%- if valores and valores.get(nombre) -%}{{ valores.get(nombre) }}
+{%- elif juego and juego|attr(nombre) is not none -%}{{ juego|attr(nombre) }}
+{%- endif -%}
+{%- endmacro %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <h1 class="h3 mb-1">{% if juego %}Editar juego{% else %}Nuevo juego{% endif %}</h1>
+        <p class="text-muted small mb-4">
+            Los campos marcados con * son obligatorios.
+        </p>
+
+        <form method="POST" class="card card-body" novalidate>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label for="nombre" class="form-label">Nombre *</label>
+                    <input type="text" class="form-control" id="nombre" name="nombre"
+                           value="{{ valor('nombre') }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="editorial" class="form-label">Editorial</label>
+                    <input type="text" class="form-control" id="editorial" name="editorial"
+                           value="{{ valor('editorial') }}">
+                </div>
+
+                <div class="col-md-4">
+                    <label for="categoria" class="form-label">Categoria</label>
+                    <input type="text" class="form-control" id="categoria" name="categoria"
+                           value="{{ valor('categoria') }}" placeholder="Estrategia, party, familiar">
+                </div>
+                <div class="col-md-4">
+                    <label for="proveedor_id" class="form-label">Proveedor</label>
+                    <select class="form-select" id="proveedor_id" name="proveedor_id">
+                        <option value="">Sin asignar</option>
+                        {% for p in proveedores %}
+                        <option value="{{ p.id }}"
+                            {% if valor('proveedor_id')|string == p.id|string %}selected{% endif %}>
+                            {{ p.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="duracion_minutos" class="form-label">Duracion (minutos)</label>
+                    <input type="number" class="form-control" id="duracion_minutos"
+                           name="duracion_minutos" min="1" value="{{ valor('duracion_minutos') }}">
+                </div>
+
+                <div class="col-md-3">
+                    <label for="min_jugadores" class="form-label">Jugadores (minimo)</label>
+                    <input type="number" class="form-control" id="min_jugadores"
+                           name="min_jugadores" min="1" value="{{ valor('min_jugadores') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="max_jugadores" class="form-label">Jugadores (maximo)</label>
+                    <input type="number" class="form-control" id="max_jugadores"
+                           name="max_jugadores" min="1" value="{{ valor('max_jugadores') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="edad_minima" class="form-label">Edad minima</label>
+                    <input type="number" class="form-control" id="edad_minima"
+                           name="edad_minima" min="0" value="{{ valor('edad_minima') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="precio" class="form-label">Precio *</label>
+                    <input type="text" class="form-control" id="precio" name="precio"
+                           value="{{ valor('precio') }}" placeholder="52000" required>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="stock" class="form-label">Stock actual *</label>
+                    <input type="number" class="form-control" id="stock" name="stock"
+                           min="0" value="{{ valor('stock') or 0 }}" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="stock_minimo" class="form-label">Stock minimo *</label>
+                    <input type="number" class="form-control" id="stock_minimo" name="stock_minimo"
+                           min="0" value="{{ valor('stock_minimo') or 1 }}" required>
+                    <div class="form-text">Cuando el stock llega aca, se dispara la alerta.</div>
+                </div>
+                <div class="col-md-6">
+                    <label for="imagen_url" class="form-label">Imagen (URL)</label>
+                    <input type="url" class="form-control" id="imagen_url" name="imagen_url"
+                           value="{{ valor('imagen_url') }}">
+                </div>
+
+                <div class="col-12">
+                    <label for="descripcion" class="form-label">Descripcion</label>
+                    <textarea class="form-control" id="descripcion" name="descripcion"
+                              rows="3">{{ valor('descripcion') }}</textarea>
+                </div>
+
+                <input type="hidden" name="bgg_id" value="{{ valor('bgg_id') }}">
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">
+                    {% if juego %}Guardar cambios{% else %}Agregar al inventario{% endif %}
+                </button>
+                <a href="{{ url_for('inventario.listar_juegos') }}" class="btn btn-outline-secondary">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

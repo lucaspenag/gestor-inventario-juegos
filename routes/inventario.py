@@ -9,13 +9,99 @@ from flask import (
 )
 from flask_login import current_user, login_required
 from sqlalchemy import or_
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from decoradores import admin_requerido
 from extensions import db
 from models import Juego, Proveedor
 
 inventario_bp = Blueprint("inventario", __name__)
+
+
+def _leer_entero(nombre, obligatorio=False, minimo=None, etiqueta=None):
+    etiqueta = etiqueta or nombre
+    crudo = (request.form.get(nombre) or "").strip()
+
+    if not crudo:
+        if obligatorio:
+            return None, f"El campo {etiqueta} es obligatorio."
+        return None, None
+
+    try:
+        valor = int(crudo)
+    except ValueError:
+        return None, f"El campo {etiqueta} tiene que ser un numero entero."
+
+    if minimo is not None and valor < minimo:
+        return None, f"El campo {etiqueta} no puede ser menor que {minimo}."
+
+    return valor, None
+
+
+def _leer_decimal(nombre, obligatorio=False, minimo=None, etiqueta=None):
+    etiqueta = etiqueta or nombre
+    crudo = (request.form.get(nombre) or "").strip().replace(",", ".")
+
+    if not crudo:
+        if obligatorio:
+            return None, f"El campo {etiqueta} es obligatorio."
+        return None, None
+
+    try:
+        valor = float(crudo)
+    except ValueError:
+        return None, f"El campo {etiqueta} tiene que ser un numero."
+
+    if minimo is not None and valor < minimo:
+        return None, f"El campo {etiqueta} no puede ser menor que {minimo}."
+
+    return valor, None
+
+
+def _datos_del_formulario():
+    errores = []
+    datos = {}
+
+    datos["nombre"] = (request.form.get("nombre") or "").strip()
+    if not datos["nombre"]:
+        errores.append("El nombre del juego es obligatorio.")
+
+    datos["editorial"] = (request.form.get("editorial") or "").strip() or None
+    datos["categoria"] = (request.form.get("categoria") or "").strip() or None
+    datos["descripcion"] = (request.form.get("descripcion") or "").strip() or None
+    datos["imagen_url"] = (request.form.get("imagen_url") or "").strip() or None
+
+    for campo, obligatorio, minimo, etiqueta in [
+        ("min_jugadores", False, 1, "cantidad minima de jugadores"),
+        ("max_jugadores", False, 1, "cantidad maxima de jugadores"),
+        ("edad_minima", False, 0, "edad minima"),
+        ("duracion_minutos", False, 1, "duracion"),
+        ("stock", True, 0, "stock"),
+        ("stock_minimo", True, 0, "stock minimo"),
+        ("bgg_id", False, 1, "id de BoardGameGeek"),
+    ]:
+        valor, error = _leer_entero(campo, obligatorio, minimo, etiqueta)
+        if error:
+            errores.append(error)
+        datos[campo] = valor
+
+    precio, error = _leer_decimal("precio", obligatorio=True, minimo=0.01, etiqueta="precio")
+    if error:
+        errores.append(error)
+    datos["precio"] = precio
+
+    if datos["min_jugadores"] and datos["max_jugadores"]:
+        if datos["min_jugadores"] > datos["max_jugadores"]:
+            errores.append(
+                "La cantidad minima de jugadores no puede superar a la maxima."
+            )
+
+    proveedor_id, error = _leer_entero("proveedor_id", etiqueta="proveedor")
+    if error:
+        errores.append(error)
+    datos["proveedor_id"] = proveedor_id
+
+    return datos, errores
 
 
 @inventario_bp.route("/")
@@ -93,4 +179,73 @@ def listar_juegos():
         jugadores=jugadores,
         ver_inactivos=ver_inactivos,
         solo_reponer=solo_reponer,
+    )
+
+
+@inventario_bp.route("/juegos/nuevo", methods=["GET", "POST"])
+@login_required
+@admin_requerido
+def nuevo_juego():
+    proveedores = Proveedor.query.filter_by(activo=True).order_by(Proveedor.nombre).all()
+
+    if request.method == "POST":
+        datos, errores = _datos_del_formulario()
+
+        if errores:
+            for error in errores:
+                flash(error, "warning")
+            return render_template(
+                "juegos/formulario.html",
+                juego=None,
+                proveedores=proveedores,
+                valores=request.form,
+            )
+
+        try:
+            duplicado = Juego.query.filter(
+                db.func.lower(Juego.nombre) == datos["nombre"].lower()
+            ).first()
+            if duplicado:
+                flash(
+                    f"Ya existe un juego registrado con el nombre {datos['nombre']}.",
+                    "warning",
+                )
+                return render_template(
+                    "juegos/formulario.html",
+                    juego=None,
+                    proveedores=proveedores,
+                    valores=request.form,
+                )
+
+            juego = Juego(**datos)
+            db.session.add(juego)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("No se pudo guardar el juego por un conflicto de datos.", "danger")
+            return render_template(
+                "juegos/formulario.html",
+                juego=None,
+                proveedores=proveedores,
+                valores=request.form,
+            )
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            current_app.logger.error("Error al dar de alta un juego: %s", e)
+            flash("No se pudo guardar el juego.", "danger")
+            return render_template(
+                "juegos/formulario.html",
+                juego=None,
+                proveedores=proveedores,
+                valores=request.form,
+            )
+
+        flash(f"Se agrego {juego.nombre} al inventario.", "success")
+        return redirect(url_for("inventario.listar_juegos"))
+
+    return render_template(
+        "juegos/formulario.html",
+        juego=None,
+        proveedores=proveedores,
+        valores=request.args,
     )
