@@ -249,3 +249,51 @@ def nuevo_juego():
         proveedores=proveedores,
         valores=request.args,
     )
+
+
+@inventario_bp.route("/juegos/<int:juego_id>/editar", methods=["GET", "POST"])
+@login_required
+@admin_requerido
+def editar_juego(juego_id):
+    """Modificacion de los datos de un juego. HU02."""
+    juego = db.session.get(Juego, juego_id)
+    if juego is None:
+        flash("El juego que buscas no existe.", "warning")
+        return redirect(url_for("inventario.listar_juegos"))
+
+    proveedores = Proveedor.query.filter_by(activo=True).order_by(Proveedor.nombre).all()
+
+    if request.method == "POST":
+        datos, errores = _datos_del_formulario()
+
+        if errores:
+            for error in errores:
+                flash(error, "warning")
+            return render_template(
+                "juegos/formulario.html",
+                juego=juego,
+                proveedores=proveedores,
+                valores=request.form,
+            )
+
+        try:
+            for campo, valor in datos.items():
+                setattr(juego, campo, valor)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            current_app.logger.error("Error al editar el juego %s: %s", juego_id, e)
+            flash("No se pudieron guardar los cambios.", "danger")
+            return render_template(
+                "juegos/formulario.html",
+                juego=juego,
+                proveedores=proveedores,
+                valores=request.form,
+            )
+
+        flash(f"Se actualizaron los datos de {juego.nombre}.", "success")
+        return redirect(url_for("inventario.listar_juegos"))
+
+    return render_template(
+        "juegos/formulario.html", juego=juego, proveedores=proveedores, valores=None
+    )
