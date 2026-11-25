@@ -6,17 +6,20 @@ from flask import Flask
 
 from config import Config
 from extensions import db, login_manager, oauth
+from routes.auth import auth_bp
+from routes.inventario import inventario_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
-
 os.makedirs(os.path.join(os.path.dirname(__file__), "instance"), exist_ok=True)
-
 
 db.init_app(app)
 login_manager.init_app(app)
 oauth.init_app(app)
+
+app.register_blueprint(auth_bp)
+app.register_blueprint(inventario_bp)
 
 
 @app.context_processor
