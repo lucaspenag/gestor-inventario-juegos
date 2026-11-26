@@ -21,6 +21,15 @@ class Config:
     ) or "sqlite:///" + os.path.join(BASE_DIR, "instance", "inventario.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Busqueda por nombre en Wikidata y detalle desde el JSON de la web de BGG
+    # (la XML API2 oficial de BGG exige un token registrado).
+    WIKIDATA_SPARQL_URL = os.getenv(
+        "WIKIDATA_SPARQL_URL", "https://query.wikidata.org/sparql"
+    )
+    WIKIDATA_TIMEOUT = int(os.getenv("WIKIDATA_TIMEOUT", "20"))
+    GEEKDO_API_URL = os.getenv("GEEKDO_API_URL", "https://api.geekdo.com/api")
+    BGG_TIMEOUT = int(os.getenv("BGG_TIMEOUT", "10"))
+
     ADMIN_NOMBRE = os.getenv("ADMIN_NOMBRE", "Administrador")
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@tiendadejuegos.com")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin1234")

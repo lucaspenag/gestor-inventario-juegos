@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block titulo %}Buscar en BoardGameGeek - {{ nombre_sistema }}{% endblock %}
+
+{% block contenido %}
+<h1 class="h3 mb-1">Buscar en BoardGameGeek</h1>
+<p class="text-muted small mb-4">
+    Consulta la API publica de BoardGameGeek y trae los datos del juego ya cargados,
+    para no tener que escribirlos a mano.
+</p>
+
+<form class="card card-body mb-4" method="GET">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-9">
+            <label for="q" class="form-label small">Nombre del juego</label>
+            <input type="text" class="form-control" id="q" name="q" value="{{ consulta }}"
+                   placeholder="Ej: Wingspan, Azul, Terraforming Mars" required>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">Buscar</button>
+        </div>
+    </div>
+</form>
+
+{% if resultados %}
+<div class="card">
+    <div class="card-header bg-white">
+        <strong>{{ resultados|length }} resultados para "{{ consulta }}"</strong>
+    </div>
+    <ul class="list-group list-group-flush">
+        {% for juego in resultados %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <span class="fw-semibold">{{ juego.nombre }}</span>
+                <span class="text-muted small ms-2">Publicado en {{ juego.anio }}</span>
+            </div>
+            <a href="{{ url_for('catalogo.importar', bgg_id=juego.bgg_id) }}"
+               class="btn btn-sm btn-outline-primary">Importar datos</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% elif consulta %}
+<div class="alert alert-secondary">
+    No se obtuvieron resultados. Probá con otro nombre o revisá la conexión.
+</div>
+{% endif %}
+{% endblock %}

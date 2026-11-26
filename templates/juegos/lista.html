@@ -9,6 +9,7 @@
     </div>
     {% if current_user.es_admin %}
     <div class="d-flex gap-2">
+        <a href="{{ url_for('catalogo.buscar') }}" class="btn btn-outline-secondary">Importar de BGG</a>
         <a href="{{ url_for('inventario.nuevo_juego') }}" class="btn btn-primary">Nuevo juego</a>
     </div>
     {% endif %}
@@ -83,6 +84,8 @@
                     {% endif %}
                 </td>
                 <td class="text-end">
+                    <a href="{{ url_for('movimientos.nuevo', juego_id=juego.id) }}"
+                       class="btn btn-sm btn-outline-primary">Movimiento</a>
                     {% if current_user.es_admin %}
                     <a href="{{ url_for('inventario.editar_juego', juego_id=juego.id) }}"
                        class="btn btn-sm btn-outline-secondary">Editar</a>

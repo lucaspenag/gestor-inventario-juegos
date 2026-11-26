@@ -7,6 +7,7 @@ from flask import Flask
 from config import Config
 from extensions import db, login_manager, oauth
 from routes.auth import auth_bp
+from routes.catalogo import catalogo_bp
 from routes.inventario import inventario_bp
 from routes.movimientos import movimientos_bp
 from routes.reportes import reportes_bp
@@ -25,6 +26,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(inventario_bp)
 app.register_blueprint(movimientos_bp)
 app.register_blueprint(reportes_bp)
+app.register_blueprint(catalogo_bp)
 
 
 @app.context_processor

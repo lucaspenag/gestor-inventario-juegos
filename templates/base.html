@@ -31,6 +31,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('reportes.periodo') }}">Reportes</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('catalogo.buscar') }}">Buscar en BGG</a>
+                </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Administracion</a>
                     <ul class="dropdown-menu">
@@ -68,7 +71,7 @@
 </main>
 
 <footer class="text-center text-muted py-4 small">
-    {{ nombre_sistema }} &middot; Analisis y Metodologias de Sistemas &middot; DA VINCI
+    {{ nombre_sistema }} - Analisis y Metodologias de Sistemas - DA VINCI
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
