@@ -18,6 +18,7 @@ movimientos_bp = Blueprint("movimientos", __name__, url_prefix="/movimientos")
 ETIQUETAS = {
     "ingreso": "Ingreso de mercaderia",
     "venta": "Venta",
+    "baja": "Baja por rotura o perdida",
 }
 
 
@@ -55,6 +56,9 @@ def nuevo():
         except ValueError:
             cantidad = 0
             errores.append("La cantidad tiene que ser un numero entero.")
+
+        if tipo == "baja" and not motivo:
+            errores.append("Indica el motivo de la baja (rotura, perdida, faltantes).")
 
         juego = db.session.get(Juego, juego_id) if juego_id > 0 else None
         if juego_id > 0 and juego is None:
