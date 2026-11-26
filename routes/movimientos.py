@@ -22,6 +22,41 @@ ETIQUETAS = {
 }
 
 
+@movimientos_bp.route("/")
+@login_required
+def listar():
+    tipo = (request.args.get("tipo") or "").strip()
+    juego_id = (request.args.get("juego_id") or "").strip()
+
+    try:
+        consulta = Movimiento.query
+
+        if tipo in ETIQUETAS:
+            consulta = consulta.filter_by(tipo=tipo)
+
+        if juego_id:
+            try:
+                consulta = consulta.filter_by(juego_id=int(juego_id))
+            except ValueError:
+                flash("El juego seleccionado no es valido.", "warning")
+
+        movimientos = consulta.order_by(Movimiento.fecha.desc()).limit(200).all()
+        juegos = Juego.query.order_by(Juego.nombre).all()
+    except SQLAlchemyError as e:
+        current_app.logger.error("Error al listar movimientos: %s", e)
+        flash("No se pudo cargar el historial de movimientos.", "danger")
+        movimientos, juegos = [], []
+
+    return render_template(
+        "movimientos/lista.html",
+        movimientos=movimientos,
+        juegos=juegos,
+        etiquetas=ETIQUETAS,
+        tipo=tipo,
+        juego_id=juego_id,
+    )
+
+
 @movimientos_bp.route("/nuevo", methods=["GET", "POST"])
 @login_required
 def nuevo():
@@ -31,6 +66,7 @@ def nuevo():
         current_app.logger.error("Error al cargar los juegos: %s", e)
         flash("No se pudo cargar el listado de juegos.", "danger")
         juegos = []
+
 
     preseleccionado = request.args.get("juego_id", "")
 
@@ -114,7 +150,14 @@ def nuevo():
             "success",
         )
 
-        return redirect(url_for("inventario.listar_juegos"))
+        if juego.necesita_reposicion:
+            flash(
+                f"Atencion: {juego.nombre} llego al stock minimo ({juego.stock_minimo}). "
+                "Conviene reponerlo.",
+                "warning",
+            )
+
+        return redirect(url_for("movimientos.listar"))
 
     return render_template(
         "movimientos/formulario.html",

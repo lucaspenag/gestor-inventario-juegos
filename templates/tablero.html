@@ -70,5 +70,33 @@
         </div>
     </div>
 
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white"><strong>Ultimos movimientos</strong></div>
+            <div class="card-body p-0">
+                {% if ultimos %}
+                <ul class="list-group list-group-flush">
+                    {% for m in ultimos %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span>
+                                {% if m.tipo == 'ingreso' %}
+                                <span class="badge bg-success">+{{ m.cantidad }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">-{{ m.cantidad }}</span>
+                                {% endif %}
+                                {{ m.juego.nombre }}
+                            </span>
+                            <span class="text-muted small">{{ m.fecha|fecha }}</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted small p-3 mb-0">Todavia no se registraron movimientos.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
