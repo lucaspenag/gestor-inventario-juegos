@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from decoradores import admin_requerido
 from extensions import db
-from models import Juego, Movimiento, Proveedor
+from models import Juego, Movimiento, Proveedor, Usuario
 
 inventario_bp = Blueprint("inventario", __name__)
 
@@ -247,6 +247,7 @@ def nuevo_juego():
         flash(f"Se agrego {juego.nombre} al inventario.", "success")
         return redirect(url_for("inventario.listar_juegos"))
 
+  
     return render_template(
         "juegos/formulario.html",
         juego=None,
@@ -372,3 +373,78 @@ def proveedores():
         listado = []
 
     return render_template("proveedores.html", proveedores=listado)
+
+
+@inventario_bp.route("/usuarios", methods=["GET", "POST"])
+@login_required
+@admin_requerido
+def usuarios():
+    if request.method == "POST":
+        nombre = (request.form.get("nombre") or "").strip()
+        email = (request.form.get("email") or "").strip().lower()
+        password = request.form.get("password") or ""
+        rol = request.form.get("rol") or "empleado"
+
+        errores = []
+        if not nombre:
+            errores.append("El nombre es obligatorio.")
+        if "@" not in email:
+            errores.append("Ingresa un email valido.")
+        if len(password) < 8:
+            errores.append("La contrasena tiene que tener al menos 8 caracteres.")
+        if rol not in ("admin", "empleado"):
+            errores.append("El rol seleccionado no es valido.")
+
+        if errores:
+            for error in errores:
+                flash(error, "warning")
+        else:
+            try:
+                if Usuario.query.filter_by(email=email).first():
+                    flash("Ya existe un usuario con ese email.", "warning")
+                else:
+                    usuario = Usuario(nombre=nombre, email=email, rol=rol)
+                    usuario.definir_password(password)
+                    db.session.add(usuario)
+                    db.session.commit()
+                    flash(f"Se creo el usuario {email}.", "success")
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                current_app.logger.error("Error al crear el usuario: %s", e)
+                flash("No se pudo crear el usuario.", "danger")
+
+        return redirect(url_for("inventario.usuarios"))
+
+    try:
+        listado = Usuario.query.order_by(Usuario.nombre).all()
+    except SQLAlchemyError as e:
+        current_app.logger.error("Error al listar usuarios: %s", e)
+        flash("No se pudo cargar la lista de usuarios.", "danger")
+        listado = []
+
+    return render_template("usuarios.html", usuarios=listado)
+
+
+@inventario_bp.route("/usuarios/<int:usuario_id>/estado", methods=["POST"])
+@login_required
+@admin_requerido
+def cambiar_estado_usuario(usuario_id):
+    usuario = db.session.get(Usuario, usuario_id)
+    if usuario is None:
+        flash("El usuario no existe.", "warning")
+        return redirect(url_for("inventario.usuarios"))
+
+    if usuario.id == current_user.id:
+        flash("No podes darte de baja a vos mismo.", "warning")
+        return redirect(url_for("inventario.usuarios"))
+
+    try:
+        usuario.activo = not usuario.activo
+        db.session.commit()
+        flash(f"Se actualizo el estado de {usuario.email}.", "success")
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error("Error al cambiar el estado del usuario: %s", e)
+        flash("No se pudo actualizar el usuario.", "danger")
+
+    return redirect(url_for("inventario.usuarios"))

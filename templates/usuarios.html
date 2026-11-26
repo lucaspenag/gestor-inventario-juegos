@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block titulo %}Usuarios - {{ nombre_sistema }}{% endblock %}
+
+{% block contenido %}
+<h1 class="h3 mb-1">Usuarios</h1>
+<p class="text-muted small mb-4">
+    El administrador gestiona el catalogo y ve los reportes. El empleado registra
+    movimientos y consulta el stock.
+</p>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <form method="POST" class="card card-body" novalidate>
+            <h2 class="h6 mb-3">Nuevo usuario</h2>
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre *</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email *</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Contrasena *</label>
+                <input type="password" class="form-control" id="password" name="password"
+                       minlength="8" required>
+                <div class="form-text">Minimo 8 caracteres.</div>
+            </div>
+            <div class="mb-3">
+                <label for="rol" class="form-label">Rol *</label>
+                <select class="form-select" id="rol" name="rol">
+                    <option value="empleado">Empleado</option>
+                    <option value="admin">Administrador</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Crear usuario</button>
+        </form>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header bg-white"><strong>Listado</strong></div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Rol</th>
+                            <th>Ingresa con</th>
+                            <th class="text-end">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in usuarios %}
+                        <tr>
+                            <td>
+                                <span class="fw-semibold">{{ u.nombre }}</span><br>
+                                <span class="text-muted small">{{ u.email }}</span>
+                            </td>
+                            <td>
+                                {% if u.es_admin %}
+                                <span class="badge bg-dark">Administrador</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Empleado</span>
+                                {% endif %}
+                            </td>
+                            <td class="small">
+                                {% if u.origen == 'google' %}Google{% else %}Email y contrasena{% endif %}
+                            </td>
+                            <td class="text-end">
+                                <form method="POST"
+                                      action="{{ url_for('inventario.cambiar_estado_usuario', usuario_id=u.id) }}"
+                                      class="d-inline">
+                                    <button type="submit"
+                                            class="btn btn-sm {% if u.activo %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                                            {% if u.id == current_user.id %}disabled{% endif %}>
+                                        {% if u.activo %}Dar de baja{% else %}Reactivar{% endif %}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
