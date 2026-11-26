@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block titulo %}Reportes - {{ nombre_sistema }}{% endblock %}
+
+{% block contenido %}
+<h1 class="h3 mb-1">Reporte de movimientos</h1>
+<p class="text-muted small mb-4">Ingresos, ventas y bajas por juego dentro de un periodo</p>
+
+<form class="card card-body mb-4" method="GET">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label for="desde" class="form-label small">Desde</label>
+            <input type="date" class="form-control" id="desde" name="desde" value="{{ desde }}">
+        </div>
+        <div class="col-md-4">
+            <label for="hasta" class="form-label small">Hasta</label>
+            <input type="date" class="form-control" id="hasta" name="hasta" value="{{ hasta }}">
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-outline-primary w-100">Generar reporte</button>
+        </div>
+    </div>
+</form>
+
+<div class="row g-3 mb-4">
+    <div class="col-4">
+        <div class="card tarjeta-dato">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Unidades ingresadas</p>
+                <p class="h4 mb-0 text-success">{{ totales.ingreso }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card tarjeta-dato">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Unidades vendidas</p>
+                <p class="h4 mb-0 text-primary">{{ totales.venta }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card tarjeta-dato">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Unidades dadas de baja</p>
+                <p class="h4 mb-0 text-danger">{{ totales.baja }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-white"><strong>Detalle por juego</strong></div>
+    {% if filas %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Juego</th>
+                    <th class="text-center">Ingresos</th>
+                    <th class="text-center">Ventas</th>
+                    <th class="text-center">Bajas</th>
+                    <th class="text-center">Stock actual</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fila in filas %}
+                <tr>
+                    <td>{{ fila.juego.nombre }}</td>
+                    <td class="text-center text-success">{{ fila.ingreso }}</td>
+                    <td class="text-center text-primary fw-semibold">{{ fila.venta }}</td>
+                    <td class="text-center text-danger">{{ fila.baja }}</td>
+                    <td class="text-center">{{ fila.juego.stock }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body">
+        <p class="text-muted small mb-0">No hubo movimientos en el periodo seleccionado.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-header bg-white">
+        <strong>Juegos a reponer</strong>
+        <span class="badge bg-warning text-dark ms-1">{{ a_reponer|length }}</span>
+    </div>
+    {% if a_reponer %}
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Juego</th>
+                    <th>Proveedor</th>
+                    <th class="text-center">Stock</th>
+                    <th class="text-center">Minimo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for juego in a_reponer %}
+                <tr>
+                    <td>{{ juego.nombre }}</td>
+                    <td class="small">{{ juego.proveedor.nombre if juego.proveedor else 'Sin asignar' }}</td>
+                    <td class="text-center">
+                        {% if juego.stock == 0 %}
+                        <span class="badge bg-danger">0</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">{{ juego.stock }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">{{ juego.stock_minimo }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body">
+        <p class="text-muted small mb-0">Ningun juego necesita reposicion.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

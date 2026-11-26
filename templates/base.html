@@ -27,6 +27,11 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('movimientos.listar') }}">Movimientos</a>
                 </li>
+                {% if current_user.es_admin %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('reportes.periodo') }}">Reportes</a>
+                </li>
+                {% endif %}
             </ul>
             <div class="d-flex align-items-center gap-3">
                 <span class="text-white-50 small">
