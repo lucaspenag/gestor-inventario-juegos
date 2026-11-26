@@ -1,8 +1,6 @@
 import os
 
-from flask import Flask
-
-
+from flask import Flask, render_template
 
 from config import Config
 from extensions import db, login_manager, oauth
@@ -66,6 +64,20 @@ def formato_fecha(valor):
         return "-"
 
 
+@app.errorhandler(404)
+def pagina_no_encontrada(e):
+    return render_template("errores/404.html"), 404
+
+
+@app.errorhandler(403)
+def acceso_denegado(e):
+    return render_template("errores/403.html"), 403
+
+
+@app.errorhandler(500)
+def error_interno(e):
+    db.session.rollback()
+    return render_template("errores/500.html"), 500
 
 with app.app_context():
     db.create_all()
