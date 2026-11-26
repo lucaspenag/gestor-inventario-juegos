@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask, render_template
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import Config
 from extensions import db, login_manager, oauth
@@ -13,6 +14,8 @@ from seed import crear_datos_iniciales
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 os.makedirs(os.path.join(os.path.dirname(__file__), "instance"), exist_ok=True)
 
