@@ -8,6 +8,7 @@ from config import Config
 from extensions import db, login_manager, oauth
 from routes.auth import auth_bp
 from routes.inventario import inventario_bp
+from routes.movimientos import movimientos_bp
 from seed import crear_datos_iniciales
 
 app = Flask(__name__)
@@ -21,6 +22,7 @@ oauth.init_app(app)
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(inventario_bp)
+app.register_blueprint(movimientos_bp)
 
 
 @app.context_processor
