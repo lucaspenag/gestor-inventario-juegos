@@ -22,6 +22,20 @@ db.init_app(app)
 login_manager.init_app(app)
 oauth.init_app(app)
 
+if app.config.get("GOOGLE_CLIENT_ID") and app.config.get("GOOGLE_CLIENT_SECRET"):
+    oauth.register(
+        name="google",
+        client_id=app.config["GOOGLE_CLIENT_ID"],
+        client_secret=app.config["GOOGLE_CLIENT_SECRET"],
+        server_metadata_url=app.config["GOOGLE_DISCOVERY_URL"],
+        client_kwargs={"scope": "openid email profile"},
+    )
+else:
+    app.logger.warning(
+        "Falta GOOGLE_CLIENT_ID o GOOGLE_CLIENT_SECRET: "
+        "el inicio de sesion con Google queda deshabilitado."
+    )
+
 app.register_blueprint(auth_bp)
 app.register_blueprint(inventario_bp)
 app.register_blueprint(movimientos_bp)

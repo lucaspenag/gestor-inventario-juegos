@@ -22,6 +22,12 @@
                     <button type="submit" class="btn btn-primary w-100">Iniciar sesion</button>
                 </form>
 
+                {% if google_activo %}
+                <div class="separador my-4"><span>o</span></div>
+                <a href="{{ url_for('auth.login_google') }}" class="btn btn-outline-secondary w-100">
+                    Iniciar sesion con Google
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>
