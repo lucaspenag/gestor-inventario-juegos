@@ -255,7 +255,6 @@ def nuevo_juego():
 @login_required
 @admin_requerido
 def editar_juego(juego_id):
-    """Modificacion de los datos de un juego. HU02."""
     juego = db.session.get(Juego, juego_id)
     if juego is None:
         flash("El juego que buscas no existe.", "warning")
@@ -297,3 +296,26 @@ def editar_juego(juego_id):
     return render_template(
         "juegos/formulario.html", juego=juego, proveedores=proveedores, valores=None
     )
+
+
+@inventario_bp.route("/juegos/<int:juego_id>/baja", methods=["POST"])
+@login_required
+@admin_requerido
+def dar_de_baja(juego_id):
+    juego = db.session.get(Juego, juego_id)
+    if juego is None:
+        flash("El juego que buscas no existe.", "warning")
+        return redirect(url_for("inventario.listar_juegos"))
+
+    try:
+        juego.activo = not juego.activo
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error("Error al cambiar el estado del juego: %s", e)
+        flash("No se pudo cambiar el estado del juego.", "danger")
+        return redirect(url_for("inventario.listar_juegos"))
+
+    estado = "reactivo" if juego.activo else "dio de baja"
+    flash(f"Se {estado} el juego {juego.nombre}.", "success")
+    return redirect(url_for("inventario.listar_juegos"))

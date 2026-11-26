@@ -32,6 +32,13 @@
                        {% if solo_reponer %}checked{% endif %}>
                 <label class="form-check-label small" for="reponer">Solo a reponer</label>
             </div>
+            {% if current_user.es_admin %}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="inactivos" name="inactivos" value="1"
+                       {% if ver_inactivos %}checked{% endif %}>
+                <label class="form-check-label small" for="inactivos">Ver dados de baja</label>
+            </div>
+            {% endif %}
             <button type="submit" class="btn btn-outline-primary ms-auto">Filtrar</button>
         </div>
     </div>
@@ -53,9 +60,12 @@
         </thead>
         <tbody>
             {% for juego in juegos %}
-            <tr>
+            <tr {% if not juego.activo %}class="table-secondary"{% endif %}>
                 <td>
                     <span class="fw-semibold">{{ juego.nombre }}</span>
+                    {% if not juego.activo %}
+                    <span class="badge bg-secondary ms-1">Dado de baja</span>
+                    {% endif %}
                     <br>
                     <span class="text-muted small">{{ juego.editorial or 'Sin editorial' }}</span>
                 </td>
@@ -73,6 +83,17 @@
                     {% endif %}
                 </td>
                 <td class="text-end">
+                    {% if current_user.es_admin %}
+                    <a href="{{ url_for('inventario.editar_juego', juego_id=juego.id) }}"
+                       class="btn btn-sm btn-outline-secondary">Editar</a>
+                    <form method="POST" action="{{ url_for('inventario.dar_de_baja', juego_id=juego.id) }}"
+                          class="d-inline"
+                          onsubmit="return confirm('Confirmas cambiar el estado de {{ juego.nombre }}?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            {% if juego.activo %}Baja{% else %}Reactivar{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
