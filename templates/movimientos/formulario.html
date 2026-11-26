@@ -41,6 +41,9 @@
                 <label for="cantidad" class="form-label">Cantidad *</label>
                 <input type="number" class="form-control" id="cantidad" name="cantidad" min="1"
                        value="{{ valores.get('cantidad') if valores else 1 }}" required>
+                <div class="form-text">
+                    En ventas y bajas no se puede ingresar mas unidades de las que hay en stock.
+                </div>
             </div>
 
             <div class="mb-3">

@@ -17,6 +17,7 @@ movimientos_bp = Blueprint("movimientos", __name__, url_prefix="/movimientos")
 
 ETIQUETAS = {
     "ingreso": "Ingreso de mercaderia",
+    "venta": "Venta",
 }
 
 
@@ -29,7 +30,6 @@ def nuevo():
         current_app.logger.error("Error al cargar los juegos: %s", e)
         flash("No se pudo cargar el listado de juegos.", "danger")
         juegos = []
-
 
     preseleccionado = request.args.get("juego_id", "")
 
@@ -60,6 +60,12 @@ def nuevo():
         if juego_id > 0 and juego is None:
             errores.append("El juego seleccionado no existe.")
 
+        if juego is not None and tipo in ("venta", "baja") and cantidad > juego.stock:
+            errores.append(
+                f"No hay stock suficiente de {juego.nombre}. "
+                f"Disponible: {juego.stock} unidades."
+            )
+
         if errores:
             for error in errores:
                 flash(error, "warning")
@@ -72,7 +78,10 @@ def nuevo():
             )
 
         try:
-            juego.stock += cantidad
+            if tipo == "ingreso":
+                juego.stock += cantidad
+            else:
+                juego.stock -= cantidad
 
             movimiento = Movimiento(
                 tipo=tipo,
