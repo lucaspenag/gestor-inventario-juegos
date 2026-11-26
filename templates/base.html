@@ -31,6 +31,12 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('reportes.periodo') }}">Reportes</a>
                 </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Administracion</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('inventario.proveedores') }}">Proveedores</a></li>
+                    </ul>
+                </li>
                 {% endif %}
             </ul>
             <div class="d-flex align-items-center gap-3">

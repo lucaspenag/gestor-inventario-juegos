@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block titulo %}Proveedores - {{ nombre_sistema }}{% endblock %}
+
+{% block contenido %}
+<h1 class="h3 mb-1">Proveedores</h1>
+<p class="text-muted small mb-4">Distribuidoras a las que la tienda le compra los juegos</p>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <form method="POST" class="card card-body" novalidate>
+            <h2 class="h6 mb-3">Nuevo proveedor</h2>
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre *</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" required>
+            </div>
+            <div class="mb-3">
+                <label for="contacto" class="form-label">Persona de contacto</label>
+                <input type="text" class="form-control" id="contacto" name="contacto">
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email">
+            </div>
+            <div class="mb-3">
+                <label for="telefono" class="form-label">Telefono</label>
+                <input type="text" class="form-control" id="telefono" name="telefono">
+            </div>
+            <div class="form-text mb-3">Carga al menos un dato de contacto: email o telefono.</div>
+            <button type="submit" class="btn btn-primary">Agregar proveedor</button>
+        </form>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header bg-white"><strong>Listado</strong></div>
+            {% if proveedores %}
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Proveedor</th>
+                            <th>Contacto</th>
+                            <th class="text-center">Juegos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in proveedores %}
+                        <tr>
+                            <td class="fw-semibold">{{ p.nombre }}</td>
+                            <td class="small">
+                                {{ p.contacto or '-' }}<br>
+                                <span class="text-muted">{{ p.email or p.telefono or '' }}</span>
+                            </td>
+                            <td class="text-center">{{ p.juegos|length }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="card-body">
+                <p class="text-muted small mb-0">Todavia no hay proveedores cargados.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

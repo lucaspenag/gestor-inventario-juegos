@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from decoradores import admin_requerido
 from extensions import db
-from models import Juego, Proveedor
+from models import Juego, Movimiento, Proveedor
 
 inventario_bp = Blueprint("inventario", __name__)
 
@@ -114,11 +114,14 @@ def tablero():
         valorizado = sum(j.stock * j.precio for j in juegos_activos)
         a_reponer = [j for j in juegos_activos if j.necesita_reposicion]
         sin_stock = [j for j in juegos_activos if j.stock == 0]
+        ultimos = (
+            Movimiento.query.order_by(Movimiento.fecha.desc()).limit(8).all()
+        )
     except SQLAlchemyError as e:
         current_app.logger.error("Error al armar el tablero: %s", e)
         flash("No se pudo cargar el resumen del inventario.", "danger")
         total_juegos = unidades = valorizado = 0
-        a_reponer = sin_stock = []
+        a_reponer = sin_stock = ultimos = []
 
     return render_template(
         "tablero.html",
@@ -127,6 +130,7 @@ def tablero():
         valorizado=valorizado,
         a_reponer=a_reponer,
         sin_stock=sin_stock,
+        ultimos=ultimos,
     )
 
 
@@ -319,3 +323,52 @@ def dar_de_baja(juego_id):
     estado = "reactivo" if juego.activo else "dio de baja"
     flash(f"Se {estado} el juego {juego.nombre}.", "success")
     return redirect(url_for("inventario.listar_juegos"))
+
+
+@inventario_bp.route("/proveedores", methods=["GET", "POST"])
+@login_required
+@admin_requerido
+def proveedores():
+    if request.method == "POST":
+        nombre = (request.form.get("nombre") or "").strip()
+        contacto = (request.form.get("contacto") or "").strip() or None
+        email = (request.form.get("email") or "").strip() or None
+        telefono = (request.form.get("telefono") or "").strip() or None
+
+        if not nombre:
+            flash("El nombre del proveedor es obligatorio.", "warning")
+        elif not (email or telefono):
+            flash("Carga al menos un dato de contacto: email o telefono.", "warning")
+        else:
+            try:
+                existente = Proveedor.query.filter(
+                    db.func.lower(Proveedor.nombre) == nombre.lower()
+                ).first()
+                if existente:
+                    flash(f"El proveedor {nombre} ya esta registrado.", "warning")
+                else:
+                    db.session.add(
+                        Proveedor(
+                            nombre=nombre,
+                            contacto=contacto,
+                            email=email,
+                            telefono=telefono,
+                        )
+                    )
+                    db.session.commit()
+                    flash(f"Se agrego el proveedor {nombre}.", "success")
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                current_app.logger.error("Error al guardar el proveedor: %s", e)
+                flash("No se pudo guardar el proveedor.", "danger")
+
+        return redirect(url_for("inventario.proveedores"))
+
+    try:
+        listado = Proveedor.query.order_by(Proveedor.nombre).all()
+    except SQLAlchemyError as e:
+        current_app.logger.error("Error al listar proveedores: %s", e)
+        flash("No se pudo cargar la lista de proveedores.", "danger")
+        listado = []
+
+    return render_template("proveedores.html", proveedores=listado)
