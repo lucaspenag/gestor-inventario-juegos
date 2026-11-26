@@ -35,6 +35,13 @@
             </div>
         </div>
     </div>
+    <div class="col-6 col-lg-3">
+        <div class="card tarjeta-dato h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Dolar oficial</p>
+                <p class="h3 mb-0" id="cotizacion">...</p>
+                <p class="text-muted small mb-0" id="cotizacion-detalle">Consultando la API</p>
+            </div>
         </div>
     </div>
 </div>
@@ -99,4 +106,26 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+fetch("{{ url_for('catalogo.api_cotizacion') }}")
+    .then(function (respuesta) { return respuesta.json(); })
+    .then(function (datos) {
+        if (datos.ok) {
+            document.getElementById("cotizacion").textContent = "$ " + datos.venta;
+            document.getElementById("cotizacion-detalle").textContent =
+                "Compra $ " + datos.compra + " - fuente: dolarapi.com";
+        } else {
+            document.getElementById("cotizacion").textContent = "s/d";
+            document.getElementById("cotizacion-detalle").textContent = datos.mensaje;
+        }
+    })
+    .catch(function () {
+        document.getElementById("cotizacion").textContent = "s/d";
+        document.getElementById("cotizacion-detalle").textContent =
+            "No se pudo consultar la cotizacion.";
+    });
+</script>
 {% endblock %}
